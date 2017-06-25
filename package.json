@@ -1,0 +1,23 @@
+{
+  "name": "store",
+  "version": "1.0.0",
+  "description": "Week 7 HW",
+  "main": "bieBayCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lufherna/BieBay.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lufherna/BieBay/issues"
+  },
+  "homepage": "https://github.com/lufherna/BieBay#readme",
+  "dependencies": {
+    "mysql": "^2.13.0",
+    "prompt": "^1.0.0"
+  }
+}
