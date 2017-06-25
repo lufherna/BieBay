@@ -1,6 +1,14 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 
+// variables that hold item data
+var itemList = [];
+var idChosen;
+var quantityChosen;
+var total;
+var changeStock;
+
+
 // create the connection for the sql database
 var connection = mysql.createConnection({
 	host: 'localhost',
@@ -19,37 +27,85 @@ connection.connect(function(err, results){
 
 // function that shows items after the connection has been made to the db
 function seeItems() {
-	connection.query('SELECT * FROM products', function(err, res) {
+	connection.query('SELECT `item_id`, `product_name`, `price` FROM `products`', function(err, res) {
 		if (err) throw err;
 		for (var i = 0; i < res.length; i++) {
-			console.log(res[i].item_id + '. ' + res[i].product_name + ' | Price: ' + res[i].price);
+			itemList.push(res[i]);
+			console.log("id #", itemList[i].item_id + ': ' + itemList[i].product_name, '$',itemList[i].price);
 		}
 		console.log('=========================================');
-		firstPrompt();
-	})
-}
-
-function firstPrompt() {
 	inquirer.prompt([
 		{
 			type: 'input',
 			message: 'What product are you interested in purchasing? Please type in an item id',
-			name: 'userInput'
+			name: 'userInput',
 		}
 	]).then(function (answer){
-		 connection.query("SELECT * FROM products", function(err, res){
-		 		for (var i = 0; i < res.length; i++) {
-		 			if (answer.userInput === JSON.stringify(res[i].item_id)){
-		 				console.log('You have chosen: ' + res[i].product_name + 'That is an excellent product!')
-			 			} // end of if statement
+		idChosen = answer.userInput;
+		 connection.query("SELECT `item_id`, `product_name`, `price`, `stock_quantity` FROM `products` WHERE `item_id` = ?", [idChosen], function(err, res){
+		 			if (idChosen < itemList.length){
+		 				console.log('\nInvalid ID. Enter a valid product id from list\n')
+			 			} else {
+			 			console.log('You have chosen', res[0].product_name, 'for $' + res[0].price);
+			 			checkQuantity();
 			 		} 
-			 		secondPrompt();
-			 	} // end of connection query
+
+			 	function checkQuantity() {
+					inquirer.prompt ([
+						{
+							type: 'input',
+							message: 'What is the number of ' + res[0].product_name + 'you want to buy?',
+							name: 'quantity'
+						}
+					]).then(function (res) {
+						quantityChosen = res.quantity;
+						if (res[0].stock_quantity > quantityChosen){
+							total = res[0].price * quantityChosen;
+							changeStock = res[0].stock_quantity - quantityChosen;
+							console.log('Your amount due is: $' + total);
+							connection.query('UPDATE `products` SET `stock_quantity` = ? WHERE `item_id` = ?', [changeStock, idChosen])
+						} else {
+							console.log('Unable to complete your order. Not enough in stock. You can still be a Belieber though');
+							console.log('There are ', res[0].stock_quantity, 'in stock');
+							console.log('Choose a different quantity');
+							checkQuantity();
+						}
+					})
+				}
 			 })
 		})
-	}
+	})
+}
 
-function secondPrompt() {
+			 		//secondPrompt();
+			 	 // end of connection query
+/*function checkQuantity() {
+	inquirer.prompt ([
+		{
+			type: 'input',
+			message: 'What is the number of ' + res[0].product_name + 'you want to buy?',
+			name: 'quantity'
+		}
+	]).then(function (res) {
+		quantityChosen = res.quantity;
+		if (data[0].stock_quantity > quantityChose){
+			total = data[0].price * quantityChosen;
+			changeStock = data[0].stock_quantity - quantityChosen;
+			console.log('Your amount due is: $' + total);
+			connection.query('UPDATE `products` SET `stock_quantity` = ? WHERE `item_id` = ?', [changeStock, idChosen])
+		} else {
+			console.log('Unable to complete your order. Not enough in stock. You can still be a Belieber though');
+			console.log('There are ', res[0].stock_quantity, 'in stock');
+			console.log('Choose a different quantity');
+			checkQuantity();
+		}
+	})
+}*/
+
+
+	
+
+/*function secondPrompt() {
 	inquirer.prompt([
 		{
 			type: 'input',
@@ -69,6 +125,6 @@ function secondPrompt() {
 					console.log('Yes! We have enough stock!');
 				}
 			}
-		});
-	});
-}
+		})
+	})
+}*/
