@@ -1,3 +1,4 @@
+// dependancies needed for this app
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 
@@ -20,7 +21,6 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err, results){
 	if (err) throw err;
-	console.log('this is connected!');
 	console.log('Are you a Belieber? You will be after you see these amazing items on sale: ');
 	seeItems();
 })
@@ -38,31 +38,32 @@ function seeItems() {
 		{
 			type: 'input',
 			message: 'What product are you interested in purchasing? Please type in an item id',
-			name: 'userInput',
+			name: 'userInput'
 		}
 	]).then(function (answer){
 		idChosen = answer.userInput;
-		 connection.query("SELECT `item_id`, `product_name`, `price`, `stock_quantity` FROM `products` WHERE `item_id` = ?", [idChosen], function(err, res){
+		 connection.query("SELECT `item_id`, `product_name`, `price`, `stock_quantity` FROM `products` WHERE `item_id` = ?", [idChosen], function(err, res) {
 		 			if (idChosen < itemList.length){
 		 				console.log('\nInvalid ID. Enter a valid product id from list\n')
 			 			} else {
 			 			console.log('You have chosen', res[0].product_name, 'for $' + res[0].price);
 			 			checkQuantity();
 			 		} 
-
+			 	// function that checks 	
 			 	function checkQuantity() {
 					inquirer.prompt ([
 						{
 							type: 'input',
-							message: 'What is the number of ' + res[0].product_name + 'you want to buy?',
+							message: 'What is the number of ' + res[0].product_name + ' ' + 'you want to buy?',
 							name: 'quantity'
 						}
-					]).then(function (res) {
-						quantityChosen = res.quantity;
+					]).then(function (response) {
+						quantityChosen = response.quantity;
 						if (res[0].stock_quantity > quantityChosen){
 							total = res[0].price * quantityChosen;
 							changeStock = res[0].stock_quantity - quantityChosen;
 							console.log('Your amount due is: $' + total);
+							console.log('Thank you for your order! Please come back and spend more money!!')
 							connection.query('UPDATE `products` SET `stock_quantity` = ? WHERE `item_id` = ?', [changeStock, idChosen])
 						} else {
 							console.log('Unable to complete your order. Not enough in stock. You can still be a Belieber though');
